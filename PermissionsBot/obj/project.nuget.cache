@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Snd+XHf1Bu0esIqLU7eaEpS2rHlCfXyHFPde3E0s9vGR8nt3zESN9URikaDGPjbLiSr8C6UdS7KznELiotEVxg==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Albert\\RiderProjects\\PermissionsBot\\PermissionsBot\\PermissionsBot.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Albert\\.nuget\\packages\\newtonsoft.json\\12.0.2\\newtonsoft.json.12.0.2.nupkg.sha512",
+    "C:\\Users\\Albert\\.nuget\\packages\\telegram.bot\\18.0.0\\telegram.bot.18.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
