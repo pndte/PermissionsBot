@@ -5,19 +5,19 @@ namespace PermissionsBot;
 [Flags]
 public enum Permissions : uint
 {
-    None = 0,
+    none = 0,
 
-    ReadMessage = 1,
-    WriteMessage = 2,
-    DeleteMessage = 4,
+    read_message = 1,
+    write_message = 2,
+    delete_message = 4,
 
-    PinMassage = 8,
+    pin_message = 8,
 
-    RecordVoiceMessage = 16,
+    record_voice_message = 16,
 
-    AddUser = 32,
-    KickUser = 64,
-    MuteUser = 128,
+    add_user = 32,
+    kick_user = 64,
+    mute_user = 128,
     
-    All = ~None
+    all = ~none
 }
