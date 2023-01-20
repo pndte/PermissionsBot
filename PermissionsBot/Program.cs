@@ -1,22 +1,13 @@
-﻿using System.Text;
-using PermissionsBot;
+﻿using PermissionsBot;
+using PermissionsBot.Bouncer;
+using PermissionsBot.CommandHandler;
+using PermissionsBot.Logger;
+using PermissionsBot.Sender;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 class Program
 {
-    private static string[] _chatCommands = new string[]
-    {
-        Permissions.read_message.ToString(),
-        Permissions.write_message.ToString(),
-        Permissions.record_voice_message.ToString(),
-        Permissions.delete_message.ToString(),
-        Permissions.pin_message.ToString(),
-        Permissions.add_user.ToString(),
-        Permissions.kick_user.ToString(),
-        Permissions.mute_user.ToString(),
-    };
-
     private static string[] _userSettingsCommands = new string[]
     {
         SettingsCommand.make_default.ToString(),
@@ -24,9 +15,14 @@ class Program
         SettingsCommand.make_admin.ToString(),
     };
 
-    private static Dictionary<long, Permissions> _permissionsMap = new Dictionary<long, Permissions>();
+    private static Dictionary<long, Command> _permissionsMap = new Dictionary<long, Command>();
 
-    public static void Main(string[] args)
+    private static Logger _logger;
+    private static Sender _sender;
+    private static Bouncer _bouncer;
+    private static CommandHandler _commandHandler;
+
+    public static async Task Main(string[] args)
     {
         string token;
 
@@ -51,6 +47,12 @@ class Program
 
         var botClient = new TelegramBotClient(token);
         botClient.StartReceiving(updateHandler: UpdateHandler, pollingErrorHandler: PollingErrorHandler);
+
+        _logger = new Logger();
+        _sender = new Sender(botClient);
+        _bouncer = new Bouncer(_logger);
+        _commandHandler = new CommandHandler(_logger, _sender);
+
         Console.ReadLine();
     }
 
@@ -60,7 +62,12 @@ class Program
         if (message == null)
             return;
 
-
+        if (!_bouncer.CheckForPermission(message.Chat.Id, Command.All, Command.SendMessage))
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: отказано в доступе."); // TODO: придумать чё-то с ошибками (более нормированное).
+            return;
+        }
+        
         if (message.From == null)
             return;
 
@@ -71,14 +78,14 @@ class Program
         }
 
         long userId = message.From.Id;
-        Permissions permissions = Permissions.none;
+        Command command = Command.None;
         if (_permissionsMap.ContainsKey(userId))
         {
-            permissions = _permissionsMap[userId];
+            command = _permissionsMap[userId];
         }
         else
         {
-            _permissionsMap.Add(userId, permissions);
+            _permissionsMap.Add(userId, command);
         }
 
         if (!message.Text.StartsWith('/'))
@@ -86,7 +93,7 @@ class Program
             return;
         }
 
-        string text = HandleCommandSignature(message.Text);
+        /*string text = HandleCommandSignature(message.Text);
 
         if (_chatCommands.Contains(text))
         {
@@ -98,12 +105,12 @@ class Program
         {
             HandleUserSettingsCommand(message, bot);
             return;
-        }
+        }*/
 
         await bot.SendTextMessageAsync(message.Chat.Id, "Invalid command");
     }
 
-    private static void HandleUserSettingsCommand(Message message, ITelegramBotClient bot)
+    /*private static void HandleUserSettingsCommand(Message message, ITelegramBotClient bot)
     {
         SettingsCommand settingsCommand = Enum.Parse<SettingsCommand>(HandleCommandSignature(message.Text));
         Permissions permissions;
@@ -165,11 +172,13 @@ class Program
         }
 
         bot.SendTextMessageAsync(message.Chat.Id, $"Access is denied! Permissions you have: {userPermissions}");
-    }
+    }*/
 
 
-    private static Task PollingErrorHandler(ITelegramBotClient arg1, Exception arg2, CancellationToken arg3)
+    private static Task PollingErrorHandler(ITelegramBotClient bot, Exception exception,
+        CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        Console.WriteLine(exception.Message);
+        return Task.CompletedTask;
     }
 }
