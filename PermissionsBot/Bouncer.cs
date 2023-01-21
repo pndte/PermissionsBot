@@ -1,3 +1,5 @@
+using Telegram.Bot.Types;
+
 namespace PermissionsBot.Bouncer;
 
 using Logger;
@@ -18,9 +20,9 @@ public class Bouncer
     private Dictionary<string, Command> _commandsMap = new Dictionary<string, Command>() // TODO: убрать в другой класс.
     {
         { "/sendmessage", Command.SendMessage },
-        { "/addteachertoken", Command.AddTeacherToken },
+        { "/addteachertoken", Command.CreateTeacherToken },
         { "/removeteachertoken", Command.RemoveTeacherToken },
-        { "/addadmintoken", Command.AddAdminToken },
+        { "/addadmintoken", Command.CreateAdminToken },
         { "/removeadmintoken", Command.RemoveAdminToken }
     };
 
@@ -34,15 +36,42 @@ public class Bouncer
         return null;
     }
 
-    public bool CheckForPermission(long chatId, Command userPerms, Command command)
+    public bool CheckIfTheMessageIsCorrect(Message? message)
     {
-        if (userPerms.HasFlag(command)) // TODO: доделать.
+        if (message == null)
         {
-            _logger.Log($"User has {command.ToString()} flag!");
-            return true;
+            return false;
         }
 
-        _logger.LogWarning($"User has not {command.ToString()} flag!");
-        return false;
+        if (message.From == null)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(message.Text))
+        {
+            return false;
+        }
+
+        string[] text = message.Text.Split(' ');
+
+        if (!_commandsMap.ContainsKey(text[0]))
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
+    public bool CheckForPermission(long chatId, Command userPerms, Command command)
+    {
+        if (!userPerms.HasFlag(command)) // TODO: доделать.
+        {
+            _logger.LogWarning($"User has not {command.ToString()} flag!");
+            return false;
+        }
+
+        _logger.Log($"User has {command.ToString()} flag!");
+        return true;
     }
 }

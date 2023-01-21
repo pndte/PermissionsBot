@@ -1,10 +1,17 @@
 {
   "version": 2,
-  "dgSpecHash": "Snd+XHf1Bu0esIqLU7eaEpS2rHlCfXyHFPde3E0s9vGR8nt3zESN9URikaDGPjbLiSr8C6UdS7KznELiotEVxg==",
+  "dgSpecHash": "8amwVDe5ZWCsqGWc+bNCKVwBCrlQaiyLGnooUWHYkQvd24OvU9sapLjHWnmCWAZrKlq6uCcGbxoL/6Etgn54uQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\Albert\\RiderProjects\\PermissionsBot\\PermissionsBot\\PermissionsBot.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Albert\\.nuget\\packages\\microsoft.data.sqlite\\7.0.2\\microsoft.data.sqlite.7.0.2.nupkg.sha512",
+    "C:\\Users\\Albert\\.nuget\\packages\\microsoft.data.sqlite.core\\7.0.2\\microsoft.data.sqlite.core.7.0.2.nupkg.sha512",
     "C:\\Users\\Albert\\.nuget\\packages\\newtonsoft.json\\12.0.2\\newtonsoft.json.12.0.2.nupkg.sha512",
+    "C:\\Users\\Albert\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.2\\sqlitepclraw.bundle_e_sqlite3.2.1.2.nupkg.sha512",
+    "C:\\Users\\Albert\\.nuget\\packages\\sqlitepclraw.core\\2.1.2\\sqlitepclraw.core.2.1.2.nupkg.sha512",
+    "C:\\Users\\Albert\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.2\\sqlitepclraw.lib.e_sqlite3.2.1.2.nupkg.sha512",
+    "C:\\Users\\Albert\\.nuget\\packages\\sqlitepclraw.provider.e_sqlite3\\2.1.2\\sqlitepclraw.provider.e_sqlite3.2.1.2.nupkg.sha512",
+    "C:\\Users\\Albert\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512",
     "C:\\Users\\Albert\\.nuget\\packages\\telegram.bot\\18.0.0\\telegram.bot.18.0.0.nupkg.sha512"
   ],
   "logs": []
