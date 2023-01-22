@@ -1,5 +1,6 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace PermissionsBot.Sender;
 
@@ -24,6 +25,11 @@ public class Sender
     public async void SendBack(long chatId, string text)
     {
         await _botClient.SendTextMessageAsync(chatId, text);
+    }
+
+    public async void SendBack(long chatId, string text, ParseMode parseMode)
+    {
+        await _botClient.SendTextMessageAsync(chatId, text, parseMode);
     }
 
     /// <summary>

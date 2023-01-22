@@ -19,11 +19,16 @@ public class Bouncer
 
     private Dictionary<string, Command> _commandsMap = new Dictionary<string, Command>() // TODO: убрать в другой класс.
     {
-        { "/sendmessage", Command.SendMessage },
-        { "/addteachertoken", Command.CreateTeacherToken },
-        { "/removeteachertoken", Command.RemoveTeacherToken },
-        { "/addadmintoken", Command.CreateAdminToken },
-        { "/removeadmintoken", Command.RemoveAdminToken }
+        {"/register", Command.Register},
+        {"/sendmessage", Command.SendMessage},
+        {"/sendmessageto", Command.SendMessageTo},
+        {"/silentchat", Command.SilentChat},
+        {"/subscribechat", Command.SubscribeChat},
+        {"/addteachertoken", Command.CreateTeacherToken },
+        {"/removeteachertoken", Command.RemoveTeacherToken },
+        {"/addadmintoken", Command.CreateAdminToken },
+        {"/removeadmintoken", Command.RemoveAdminToken },
+        {"/showalltokens", Command.ShowAllTokens},
     };
 
     public Command? GetCommandFromString(string text)

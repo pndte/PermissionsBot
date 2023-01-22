@@ -7,13 +7,15 @@ namespace PermissionsBot;
 public enum Command : uint
 {
     None = 0,
-    SendMessage = 1,
-    SilentChat = 2,
-    SubscribeChat = 4,
-    CreateTeacherToken = 8,
-    RemoveTeacherToken = 16,
-    CreateAdminToken = 32,
-    RemoveAdminToken = 64,
-    ShowAllTokens = 128,
+    Register = 1,
+    SendMessage = 2,
+    SendMessageTo = 4,
+    SilentChat = 8,
+    SubscribeChat = 16,
+    CreateTeacherToken = 32,
+    RemoveTeacherToken = 64,
+    CreateAdminToken = 128,
+    RemoveAdminToken = 256,
+    ShowAllTokens = 512,
     All = ~None,
 }

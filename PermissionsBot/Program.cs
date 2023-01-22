@@ -1,5 +1,4 @@
 ﻿using PermissionsBot;
-using PermissionsBot.Tokens;
 using PermissionsBot.Bouncer;
 using PermissionsBot.CommandHandler;
 using PermissionsBot.DB;
@@ -10,19 +9,11 @@ using Telegram.Bot.Types;
 
 class Program
 {
-    private static string[] _userSettingsCommands = new string[]
-    {
-        SettingsCommand.make_default.ToString(),
-        SettingsCommand.make_moderator.ToString(),
-        SettingsCommand.make_admin.ToString(),
-    };
-
-    private static Dictionary<long, Command> _permissionsMap = new Dictionary<long, Command>();
-
     private static Logger _logger;
     private static Sender _sender;
     private static Bouncer _bouncer;
     private static CommandHandler _commandHandler;
+    private static UserDatabase _userDatabase;
 
     public static async Task Main(string[] args)
     {
@@ -48,19 +39,28 @@ class Program
         }
 
         var botClient = new TelegramBotClient(token);
+        List<BotCommand> commands = new List<BotCommand>()
+        {
+            new BotCommand(){Command = "/register", Description = "1"},
+            new BotCommand(){Command = "/sendmessage", Description = "2"},
+            new BotCommand(){Command = "/sendmessageto", Description = "3"},
+            new BotCommand(){Command = "/silentchat", Description = "4"},
+            new BotCommand(){Command = "/subscribechat", Description = "5"},
+            new BotCommand(){Command = "/addteachertoken", Description = "6"},
+            new BotCommand(){Command = "/removeteachertoken", Description = "7"},
+            new BotCommand(){Command = "/addadmintoken", Description = "8"},
+            new BotCommand(){Command = "/removeadmintoken", Description = "9"},
+            new BotCommand(){Command = "/showalltokens", Description = "10"},
+            
+        };
+        await botClient.SetMyCommandsAsync(commands);
         botClient.StartReceiving(updateHandler: UpdateHandler, pollingErrorHandler: PollingErrorHandler);
 
         _logger = new Logger();
         _sender = new Sender(botClient);
         _bouncer = new Bouncer(_logger);
-        _commandHandler = new CommandHandler(_logger, _sender);
-        Console.WriteLine(TokenManager.CreateTeacherAccessToken());
-        Console.WriteLine(TokenManager.CreateTeacherAccessToken());
-        Console.WriteLine(TokenManager.CreateAdminAccessToken());
-        Console.WriteLine(TokenManager.CreateAdminAccessToken());
-        UserDatabase db = new UserDatabase("userdata");
-        db.AddToken(TokenManager.CreateTeacherAccessToken());
-
+        _userDatabase = new UserDatabase("userdata");
+        _commandHandler = new CommandHandler(_logger, _sender, _userDatabase);
         Console.ReadLine();
     }
 
@@ -73,22 +73,22 @@ class Program
             return;
         }
 
-        Command command = _bouncer.GetCommandFromString(message.Text).Value;
+        string[] args = message.Text.Split(' ');
+        Command command = _bouncer.GetCommandFromString(args[0]).Value;
 
-        if (!_bouncer.CheckForPermission(message.Chat.Id, Command.All, command))
+        if (!_bouncer.CheckForPermission(message.Chat.Id, _userDatabase.GetPermissions(message.From.Id), command))
         {
             _sender.SendBack(message.Chat.Id, "Ошибка: отказано в доступе."); // TODO: придумать чё-то с ошибками (более нормированное).
             return;
         }
         
-        _sender.SendBack(message.Chat.Id, "Доступ разрешён."); 
-        _commandHandler.HandleComand(command, message);
+        _commandHandler.HandleCommand(command, message);
     }
 
     private static Task PollingErrorHandler(ITelegramBotClient bot, Exception exception,
         CancellationToken cancellationToken)
     {
-        Console.WriteLine(exception.Message);
+        Console.WriteLine(exception.ToString());
         return Task.CompletedTask;
     }
 }
