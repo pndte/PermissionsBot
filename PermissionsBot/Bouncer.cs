@@ -17,7 +17,7 @@ public class Bouncer
 
     private Logger _logger;
 
-    private Dictionary<string, Command> _commandsMap = new Dictionary<string, Command>() // TODO: убрать в другой класс.
+    private Dictionary<string, Command> _commandsMap = new Dictionary<string, Command>()
     {
         {"/register", Command.Register},
         {"/sendmessage", Command.SendMessage},
@@ -25,9 +25,8 @@ public class Bouncer
         {"/silentchat", Command.SilentChat},
         {"/subscribechat", Command.SubscribeChat},
         {"/addteachertoken", Command.CreateTeacherToken },
-        {"/removeteachertoken", Command.RemoveTeacherToken },
         {"/addadmintoken", Command.CreateAdminToken },
-        {"/removeadmintoken", Command.RemoveAdminToken },
+        {"/removetoken", Command.RemoveToken },
         {"/showalltokens", Command.ShowAllTokens},
     };
 
@@ -70,7 +69,7 @@ public class Bouncer
 
     public bool CheckForPermission(long chatId, Command userPerms, Command command)
     {
-        if (!userPerms.HasFlag(command)) // TODO: доделать.
+        if (!userPerms.HasFlag(command))
         {
             _logger.LogWarning($"User has not {command.ToString()} flag!");
             return false;

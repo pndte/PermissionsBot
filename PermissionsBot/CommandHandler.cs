@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace PermissionsBot.CommandHandler;
 
 using Telegram.Bot.Types.Enums;
@@ -38,24 +40,52 @@ public class CommandHandler
             case Command.SilentChat:
                 break;
             case Command.SubscribeChat:
-                SubscribeChat(message);
+                SubscribeChat(message); // TODO: дб.
                 break;
             case Command.CreateTeacherToken:
                 CreateTeacherToken(message);
                 break;
-            case Command.RemoveTeacherToken:
-                break;
             case Command.CreateAdminToken:
                 CreateAdminToken(message);
                 break;
-            case Command.RemoveAdminToken:
+            case Command.RemoveToken:
+                RemoveToken(message);
                 break;
             case Command.ShowAllTokens:
+                string[] text = _userDatabase.ShowTable();
+                for (int i = 0; i < text.Length; i += 10)
+                {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (int j = i; j < i + 10 && j < text.Length; j++)
+                    {
+                        stringBuilder.Append(text[j]);
+                    }
+                    _sender.SendBack(message.Chat.Id, stringBuilder.ToString(), ParseMode.MarkdownV2);
+                }
                 break;
             default:
                 _sender.SendBack(message.Chat.Id, "Ошибка: неопознанная команда.");
                 return;
         }
+    }
+
+    private void RemoveToken(Message message)
+    {
+        string[] args = message.Text.Split(' ');
+        if (args.Length != 2)
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: укажите токен доступа.");
+            return;
+        }
+
+        if (!_userDatabase.ContainToken(args[1]))
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён токен доступа.");
+            return;
+        }
+
+        _userDatabase.RemoveData(args[1]);
+        _sender.SendBack(message.Chat.Id, "Токен доступа успешно удалён.");
     }
 
     private void Register(Message message)
@@ -83,8 +113,9 @@ public class CommandHandler
         string adminAccessToken = TokenManager.CreateAdminAccessToken();
         _logger.Log($"Новый токен был создан!\n{adminAccessToken}");
         _userDatabase.AddToken(adminAccessToken);
-        _sender.SendBack(message.Chat.Id, $"Токен администратора создан! Используйте /register [ваш токен], чтобы зарегистрироваться.");
-        _sender.SendBack(message.Chat.Id, adminAccessToken);
+        _sender.SendBack(message.Chat.Id,
+            $"Токен администратора создан\\. Используйте /register \\[ваш токен\\], чтобы зарегистрироваться\\.\n`{adminAccessToken}`",
+            ParseMode.MarkdownV2);
     }
 
     private void CreateTeacherToken(Message message)
@@ -92,8 +123,9 @@ public class CommandHandler
         string teacherAccessToken = TokenManager.CreateTeacherAccessToken();
         _logger.Log($"Новый токен был создан!\n{teacherAccessToken}");
         _userDatabase.AddToken(teacherAccessToken);
-        _sender.SendBack(message.Chat.Id, $"Токен учителя создан! Используйте /register [ваш токен], чтобы зарегистрироваться.");
-        _sender.SendBack(message.Chat.Id, teacherAccessToken);
+        _sender.SendBack(message.Chat.Id,
+            $"Токен учителя создан\\. Используйте /register \\[ваш токен\\], чтобы зарегистрироваться\\.\n`{teacherAccessToken}`",
+            ParseMode.MarkdownV2);
     }
 
     private void SubscribeChat(Message message)

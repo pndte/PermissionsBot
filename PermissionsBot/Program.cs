@@ -47,9 +47,8 @@ class Program
             new BotCommand(){Command = "/silentchat", Description = "4"},
             new BotCommand(){Command = "/subscribechat", Description = "5"},
             new BotCommand(){Command = "/addteachertoken", Description = "6"},
-            new BotCommand(){Command = "/removeteachertoken", Description = "7"},
+            new BotCommand(){Command = "/removetoken", Description = "7"},
             new BotCommand(){Command = "/addadmintoken", Description = "8"},
-            new BotCommand(){Command = "/removeadmintoken", Description = "9"},
             new BotCommand(){Command = "/showalltokens", Description = "10"},
             
         };

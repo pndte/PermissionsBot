@@ -13,9 +13,8 @@ public enum Command : uint
     SilentChat = 8,
     SubscribeChat = 16,
     CreateTeacherToken = 32,
-    RemoveTeacherToken = 64,
-    CreateAdminToken = 128,
-    RemoveAdminToken = 256,
-    ShowAllTokens = 512,
+    CreateAdminToken = 64,
+    RemoveToken = 128,
+    ShowAllTokens = 256,
     All = ~None,
 }
