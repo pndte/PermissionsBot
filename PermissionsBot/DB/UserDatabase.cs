@@ -4,20 +4,9 @@ namespace PermissionsBot.DB;
 
 public class UserDatabase: AbstractDatabase
 {
-    public UserDatabase(string tableName)
+    public UserDatabase(string tableName): base(tableName, "token TEXT NOT NULL UNIQUE, userid INTEGER, permissions INTEGER")
     {
-        _tableName = tableName;
-        ConnectAndRun((connection =>
-        {
-            var command = connection.CreateCommand();
-            command.CommandText =
-                @$"CREATE TABLE IF NOT EXISTS {tableName}                 
-                   (token TEXT NOT NULL UNIQUE, userid INTEGER, permissions INTEGER);";
-            command.ExecuteNonQuery();
-        }));
     }
-
-    private string _tableName;
 
     public Command GetPermissions(long userId)
     {
@@ -27,7 +16,7 @@ public class UserDatabase: AbstractDatabase
             var command = connection.CreateCommand();
             command.CommandText =
                 $@"SELECT permissions 
-                    FROM {_tableName} 
+                    FROM {TableName} 
                     WHERE userid = '{userId}'";
             permissions = (Command)Convert.ToInt32(command.ExecuteScalar());
         }));
@@ -64,7 +53,7 @@ public class UserDatabase: AbstractDatabase
         {
             var command = connection.CreateCommand();
             command.CommandText =
-                $@"INSERT INTO {_tableName} (token, permissions)
+                $@"INSERT INTO {TableName} (token, permissions)
                    VALUES ('{token}', '{permissions.GetHashCode()}');";
             command.ExecuteNonQueryAsync();
         });
@@ -77,7 +66,7 @@ public class UserDatabase: AbstractDatabase
         {
             var command = connection.CreateCommand();
             command.CommandText =
-                $@"SELECT token FROM {_tableName} WHERE token = '{token}' AND userid IS NULL";
+                $@"SELECT token FROM {TableName} WHERE token = '{token}' AND userid IS NULL";
             if (command.ExecuteScalar() != null)
             {
                 result = true;
@@ -93,7 +82,7 @@ public class UserDatabase: AbstractDatabase
         {
             var command = connection.CreateCommand();
             command.CommandText =
-                $@"SELECT token FROM {_tableName} WHERE token = '{token}'";
+                $@"SELECT token FROM {TableName} WHERE token = '{token}'";
             if (command.ExecuteScalar() != null)
             {
                 result = true;
@@ -109,7 +98,7 @@ public class UserDatabase: AbstractDatabase
         {
             var command = connection.CreateCommand();
             command.CommandText =
-                $@"SELECT userid FROM {_tableName} WHERE userid = '{userId}'";
+                $@"SELECT userid FROM {TableName} WHERE userid = '{userId}'";
             if (command.ExecuteScalar() != null)
             {
                 result = true;
@@ -129,7 +118,7 @@ public class UserDatabase: AbstractDatabase
         {
             var replaceCommand = connection.CreateCommand();
             replaceCommand.CommandText =
-                $@" UPDATE {_tableName}
+                $@" UPDATE {TableName}
                     SET userid = '{userId}'
                     WHERE token = '{token}' AND userid IS NULL;
                     ;";
@@ -143,7 +132,7 @@ public class UserDatabase: AbstractDatabase
         {
             var command = connection.CreateCommand();
             command.CommandText =
-                $@"DELETE FROM {_tableName} WHERE token = '{token}'";
+                $@"DELETE FROM {TableName} WHERE token = '{token}'";
             command.ExecuteNonQuery();
         });
     }
@@ -154,7 +143,7 @@ public class UserDatabase: AbstractDatabase
         {
             var command = connection.CreateCommand();
             command.CommandText =
-                $@"DELETE FROM {_tableName} WHERE userid = '{userId}'";
+                $@"DELETE FROM {TableName} WHERE userid = '{userId}'";
             command.ExecuteNonQuery();
         });
     }
@@ -166,7 +155,7 @@ public class UserDatabase: AbstractDatabase
         {
             var command = connection.CreateCommand();
             command.CommandText =
-                $@"SELECT * FROM {_tableName} ORDER BY userid DESC, permissions ASC";
+                $@"SELECT * FROM {TableName} ORDER BY userid DESC, permissions ASC";
             using (var reader = command.ExecuteReader())
             {
                 int index = 1;

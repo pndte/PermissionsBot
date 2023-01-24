@@ -14,6 +14,7 @@ class Program
     private static Bouncer _bouncer;
     private static CommandHandler _commandHandler;
     private static UserDatabase _userDatabase;
+    private static ChatDatabase _chatDatabase;
 
     public static async Task Main(string[] args)
     {
@@ -56,10 +57,11 @@ class Program
         botClient.StartReceiving(updateHandler: UpdateHandler, pollingErrorHandler: PollingErrorHandler);
 
         _logger = new Logger();
-        _sender = new Sender(botClient);
         _bouncer = new Bouncer(_logger);
         _userDatabase = new UserDatabase("userdata");
-        _commandHandler = new CommandHandler(_logger, _sender, _userDatabase);
+        _chatDatabase = new ChatDatabase("chatdata");
+        _sender = new Sender(botClient, _chatDatabase);
+        _commandHandler = new CommandHandler(_logger, _sender, _userDatabase, _chatDatabase);
         Console.ReadLine();
     }
 
@@ -68,7 +70,7 @@ class Program
         Message? message = update.Message;
         if (!_bouncer.CheckIfTheMessageIsCorrect(message))
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: неверно введена команда."); // TODO: перенести внутрь вышибалы.
+            if(message != null) _sender.SendBack(message.Chat.Id, "Ошибка: неверно введена команда."); // TODO: перенести внутрь вышибалы.
             return;
         }
 

@@ -14,16 +14,18 @@ using DB;
 /// </summary>
 public class CommandHandler
 {
-    public CommandHandler(Logger logger, Sender sender, UserDatabase userDatabase)
+    public CommandHandler(Logger logger, Sender sender, UserDatabase userDatabase, ChatDatabase chatDatabase)
     {
         _logger = logger;
         _sender = sender;
         _userDatabase = userDatabase;
+        _chatDatabase = chatDatabase;
     }
 
     private readonly Logger _logger;
     private readonly Sender _sender;
     private readonly UserDatabase _userDatabase;
+    private readonly ChatDatabase _chatDatabase;
 
     public void HandleCommand(Command command, Message message)
     {
@@ -133,12 +135,27 @@ public class CommandHandler
         if (message.Chat.Type != ChatType.Group)
         {
             _sender.SendBack(message.Chat.Id,
-                "Подписать чат можно только в том случае, если он является групповым.");
+                "Ошибка: подписать чат можно только в том случае, если он является групповым.");
             return;
         }
 
+        string[] args = message.Text.Split(' ');
+        if (args.Length != 2)
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: укажите номер класса.");
+            return;
+        }
+
+        byte grade;
+        if (!byte.TryParse(args[1], out grade))
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: неправильно указан класс.");
+            return;
+        }
+
+        _chatDatabase.AddChat(message.Chat.Id, grade);
         _sender.SendBack(message.Chat.Id, "Чат успешно подписан!");
-        // TODO: чат добавляется в бд.
+        // TODO: сделать проверку на наличие чата.
     }
 
     private void SendMessage(Message message)
@@ -149,8 +166,7 @@ public class CommandHandler
             _sender.SendBack(message.Chat.Id, "Пожалуйста, перешлите сообщение, которое будет отправлено.");
             return;
         }
-
-        _sender.SendBack(message.Chat.Id, repliedMessage.Text);
+        
         _sender.SendOutMessage(repliedMessage);
     }
 }
