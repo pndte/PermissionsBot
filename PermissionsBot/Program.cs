@@ -85,7 +85,7 @@ class Program
         Command permissions = _userDatabase.GetPermissions(message.From.Id);
         if (permissions == Permissions.ADMIN)
         {
-            await bot.SendTextMessageAsync(message.Chat.Id, "Cum", replyMarkup: Buttons.SENDMESSAGETO_MENU);
+            await bot.SendTextMessageAsync(message.Chat.Id, "Cum", replyMarkup: Buttons.ADMIN_MAIN_MENU);
         }
         else if (permissions == Permissions.TEACHER)
         {
