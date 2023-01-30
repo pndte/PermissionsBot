@@ -38,11 +38,15 @@ public class CommandHandler
                 SendMessage(message);
                 break;
             case Command.SendMessageTo:
+                SendMessageTo(message);
                 break;
-            case Command.SilentChat:
+            case Command.MakeSilent:
                 break;
-            case Command.SubscribeChat:
+            case Command.Subscribe:
                 SubscribeChat(message); // TODO: дб.
+                break;
+            case Command.Unsubscribe:
+                UnsubscribeChat(message);
                 break;
             case Command.CreateTeacherToken:
                 CreateTeacherToken(message);
@@ -54,20 +58,104 @@ public class CommandHandler
                 RemoveToken(message);
                 break;
             case Command.ShowAllTokens:
-                string[] text = _userDatabase.ShowTable();
-                for (int i = 0; i < text.Length; i += 10)
-                {
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for (int j = i; j < i + 10 && j < text.Length; j++)
-                    {
-                        stringBuilder.Append(text[j]);
-                    }
-                    _sender.SendBack(message.Chat.Id, stringBuilder.ToString(), ParseMode.MarkdownV2);
-                }
+                ShowAllTokens(message);
                 break;
             default:
                 _sender.SendBack(message.Chat.Id, "Ошибка: неопознанная команда.");
                 return;
+        }
+    }
+
+    private void UnsubscribeChat(Message message)
+    {
+        if (message.Chat.Type != ChatType.Group)
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: отписать от сообщений можно только групповой чат.");
+            return;
+        }
+
+        if (!_chatDatabase.ContainChat(message.Chat.Id))
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: чат не подписан.");
+            return;
+        }
+
+        _chatDatabase.RemoveData(message.Chat.Id);
+        _sender.SendBack(message.Chat.Id, "Чат успешно отписан.");
+    }
+
+    private void SendMessageTo(Message message)
+    {
+        Message? repliedMessage = message.ReplyToMessage;
+        if (repliedMessage == null)
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: перешлите сообщение, которое будет отправлено.");
+            return;
+        }
+
+        string[] args = message.Text.Split(' ');
+        if (args.Length != 2)
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: укажите номера получающих сообщения классов.");
+            return;
+        }
+
+        string[] gradesStrings = args[1].Split(';');
+        if (gradesStrings.Length > 1)
+        {
+            Byte[] grades = new byte[gradesStrings.Length];
+            for (int i = 0; i < gradesStrings.Length; i++)
+            {
+                byte grade;
+                if (!byte.TryParse(gradesStrings[i], out grade))
+                {
+                    _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён номер класса.");
+                    return;
+                }
+
+                if (grade > 11 || grade < 1)
+                {
+                    _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён номер класса.");
+                    return;
+                }
+
+                grades[i] = grade;
+            }
+
+            _sender.SendOutMessageTo(repliedMessage, grades);
+            _sender.SendBack(message.Chat.Id, "Сообщение успешно разослано по указанным чатам.");
+            return;
+        }
+
+        byte singleGrade; // TODO: сделать максимум в 11 классов.
+        if (!byte.TryParse(args[1], out singleGrade))
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён номер класса.");
+            return;
+        }
+
+        if (singleGrade > 11 || singleGrade < 1)
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён номер класса.");
+            return;
+        }
+
+        _sender.SendOutMessageTo(repliedMessage, singleGrade);
+        _sender.SendBack(message.Chat.Id, "Сообщение успешно разослано по указанным чатам.");
+    }
+
+    private void ShowAllTokens(Message message)
+    {
+        string[] text = _userDatabase.ShowTable();
+        for (int i = 0; i < text.Length; i += 10)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int j = i; j < i + 10 && j < text.Length; j++)
+            {
+                stringBuilder.Append(text[j]);
+            }
+
+            _sender.SendBack(message.Chat.Id, stringBuilder.ToString(), ParseMode.MarkdownV2);
         }
     }
 
@@ -153,6 +241,12 @@ public class CommandHandler
             return;
         }
 
+        if (grade < 1 || grade > 11)
+        {
+            _sender.SendBack(message.Chat.Id, "Ошибка: неправильно указан класс.");
+            return;
+        }
+
         _chatDatabase.AddChat(message.Chat.Id, grade);
         _sender.SendBack(message.Chat.Id, "Чат успешно подписан!");
         // TODO: сделать проверку на наличие чата.
@@ -166,7 +260,7 @@ public class CommandHandler
             _sender.SendBack(message.Chat.Id, "Пожалуйста, перешлите сообщение, которое будет отправлено.");
             return;
         }
-        
+
         _sender.SendOutMessage(repliedMessage);
     }
 }

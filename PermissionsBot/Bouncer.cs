@@ -22,8 +22,9 @@ public class Bouncer
         {"/register", Command.Register},
         {"/sendmessage", Command.SendMessage},
         {"/sendmessageto", Command.SendMessageTo},
-        {"/silentchat", Command.SilentChat},
-        {"/subscribechat", Command.SubscribeChat},
+        {"/makesilent", Command.MakeSilent},
+        {"/subscribe", Command.Subscribe},
+        {"/unsubscribe", Command.Unsubscribe},
         {"/addteachertoken", Command.CreateTeacherToken },
         {"/addadmintoken", Command.CreateAdminToken },
         {"/removetoken", Command.RemoveToken },
@@ -40,7 +41,7 @@ public class Bouncer
         return null;
     }
 
-    public bool CheckIfTheMessageIsCorrect(Message? message)
+    public bool CheckIfMessageIsCorrect(Message? message)
     {
         if (message == null)
         {
@@ -56,14 +57,16 @@ public class Bouncer
         {
             return false;
         }
+        
+        return true;
+    }
 
-        string[] text = message.Text.Split(' ');
-
-        if (!_commandsMap.ContainsKey(text[0]))
+    public bool CheckIfCommandIsCorrect(string command)
+    {
+        if (!_commandsMap.ContainsKey(command))
         {
             return false;
         }
-        
         return true;
     }
 

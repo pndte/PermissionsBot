@@ -49,6 +49,26 @@ public class Sender
         }
     }
 
+    public async void SendOutMessageTo(Message message, byte grade)
+    {
+        List<long> chatIds = _chatDatabase.GetAllChatsByGrade(grade);
+        if(chatIds.Count == 0) return;
+        foreach (var chatId in chatIds)
+        {
+            await _botClient.ForwardMessageAsync(chatId, message.Chat.Id, message.MessageId);
+        }
+    }
+    
+    public async void SendOutMessageTo(Message message, byte[] grades)
+    {
+        List<long> chatIds = _chatDatabase.GetAllChatsByGrades(grades);
+        if(chatIds.Count == 0) return;
+        foreach (var chatId in chatIds)
+        {
+            await _botClient.ForwardMessageAsync(chatId, message.Chat.Id, message.MessageId);
+        }
+    }
+
     public async void SendOutMessage(string text)
     {
     }
