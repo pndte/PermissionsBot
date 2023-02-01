@@ -16,6 +16,7 @@ class Program
     private static CommandHandler _commandHandler;
     private static UserDatabase _userDatabase;
     private static ChatDatabase _chatDatabase;
+    private static PlannedActionsDatabase _plannedActionsDatabase;
 
     public static async Task Main(string[] args)
     {
@@ -63,6 +64,7 @@ class Program
         _bouncer = new Bouncer(_logger);
         _userDatabase = new UserDatabase("userdata");
         _chatDatabase = new ChatDatabase("chatdata");
+        _plannedActionsDatabase = new PlannedActionsDatabase("actionsdata");
         _sender = new Sender(botClient, _chatDatabase);
         _commandHandler = new CommandHandler(_logger, _sender, _userDatabase, _chatDatabase);
         Console.ReadLine();
@@ -124,6 +126,8 @@ class Program
                     case Command.SendMessage:
                         break;
                     case Command.SendMessageTo:
+                        _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
+                            "Выберите классы, в чаты которых будет отправлено сообщение.", markup: Buttons.SENDMESSAGETO_MENU);
                         break;
                     case Command.CreateTeacherToken:
                         break;
@@ -140,9 +144,11 @@ class Program
                         switch (secondData)
                         {
                             case 12:
-                                // TODO: здесь кнопка назад.
+                                _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
+                                    "Выберите команду.", markup: Buttons.ADMIN_MAIN_MENU); // TODO: менять менюкши в зависимости от юзера.
                                 break;
                             default:
+                                // _commandHandler.HandleCommand();
                                 // TODO: здесь с первого по одиннадцатый.
                             break;
                         }

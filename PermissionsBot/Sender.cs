@@ -2,6 +2,7 @@ using PermissionsBot.DB;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace PermissionsBot.Sender;
 
@@ -30,6 +31,12 @@ public class Sender
         await _botClient.SendTextMessageAsync(chatId, text);
     }
 
+    public async Task EditTextMessageAsync(long chatId, int messageId, string text, ParseMode? parseMode = null,
+        InlineKeyboardMarkup? markup = null)
+    {
+        await _botClient.EditMessageTextAsync(chatId, messageId, text, parseMode, replyMarkup: markup);
+    }
+
     public async void SendBack(long chatId, string text, ParseMode parseMode)
     {
         await _botClient.SendTextMessageAsync(chatId, text, parseMode);
@@ -42,7 +49,7 @@ public class Sender
     public async void SendOutMessage(Message message)
     {
         List<long> chatIds = _chatDatabase.GetAllChats();
-        if(chatIds.Count == 0) return;
+        if (chatIds.Count == 0) return;
         foreach (var chatId in chatIds)
         {
             await _botClient.ForwardMessageAsync(chatId, message.Chat.Id, message.MessageId);
@@ -52,17 +59,17 @@ public class Sender
     public async void SendOutMessageTo(Message message, byte grade)
     {
         List<long> chatIds = _chatDatabase.GetAllChatsByGrade(grade);
-        if(chatIds.Count == 0) return;
+        if (chatIds.Count == 0) return;
         foreach (var chatId in chatIds)
         {
             await _botClient.ForwardMessageAsync(chatId, message.Chat.Id, message.MessageId);
         }
     }
-    
+
     public async void SendOutMessageTo(Message message, byte[] grades)
     {
         List<long> chatIds = _chatDatabase.GetAllChatsByGrades(grades);
-        if(chatIds.Count == 0) return;
+        if (chatIds.Count == 0) return;
         foreach (var chatId in chatIds)
         {
             await _botClient.ForwardMessageAsync(chatId, message.Chat.Id, message.MessageId);
