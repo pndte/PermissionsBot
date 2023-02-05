@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace PermissionsBot.CommandHandler;
+namespace PermissionsBot.Handlers.Commands;
 
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;

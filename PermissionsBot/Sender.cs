@@ -65,6 +65,16 @@ public class Sender
             await _botClient.ForwardMessageAsync(chatId, message.Chat.Id, message.MessageId);
         }
     }
+    
+    public async void SendOutMessageTo(long chatId, int messageId, byte grade)
+    {
+        List<long> chatIds = _chatDatabase.GetAllChatsByGrade(grade);
+        if (chatIds.Count == 0) return;
+        foreach (var id in chatIds)
+        {
+            await _botClient.ForwardMessageAsync(id, chatId, messageId);
+        }
+    }
 
     public async void SendOutMessageTo(Message message, byte[] grades)
     {

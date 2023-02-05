@@ -1,15 +1,18 @@
 ﻿using PermissionsBot;
 using PermissionsBot.Bouncer;
-using PermissionsBot.CommandHandler;
+using PermissionsBot.Handlers.Commands;
 using PermissionsBot.DB;
 using PermissionsBot.Logger;
 using PermissionsBot.Sender;
+using PermissionsBot.Tokens;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 class Program
 {
+    private static TelegramBotClient _botClient;
     private static Logger _logger;
     private static Sender _sender;
     private static Bouncer _bouncer;
@@ -41,7 +44,7 @@ class Program
             return;
         }
 
-        var botClient = new TelegramBotClient(token);
+        _botClient = new TelegramBotClient(token);
         List<BotCommand> commands = new List<BotCommand>()
         {
             new BotCommand() { Command = "/register", Description = "Зарегистрироваться, используя токен доступа." },
@@ -57,15 +60,15 @@ class Program
             new BotCommand() { Command = "/addadmintoken", Description = "Сгенерировать токен доступа для админа." },
             new BotCommand() { Command = "/showalltokens", Description = "Показать все токены доступа." },
         };
-        await botClient.SetMyCommandsAsync(commands);
-        botClient.StartReceiving(updateHandler: UpdateHandler, pollingErrorHandler: PollingErrorHandler);
+        await _botClient.SetMyCommandsAsync(commands);
+        _botClient.StartReceiving(updateHandler: UpdateHandler, pollingErrorHandler: PollingErrorHandler);
 
         _logger = new Logger();
         _bouncer = new Bouncer(_logger);
         _userDatabase = new UserDatabase("userdata");
         _chatDatabase = new ChatDatabase("chatdata");
         _plannedActionsDatabase = new PlannedActionsDatabase("actionsdata");
-        _sender = new Sender(botClient, _chatDatabase);
+        _sender = new Sender(_botClient, _chatDatabase);
         _commandHandler = new CommandHandler(_logger, _sender, _userDatabase, _chatDatabase);
         Console.ReadLine();
     }
@@ -84,19 +87,29 @@ class Program
             return;
         }
 
-        Command permissions = _userDatabase.GetPermissions(message.From.Id);
-        if (permissions == Permissions.ADMIN)
+        if (_plannedActionsDatabase.ContainUser(message.From.Id))
         {
-            await bot.SendTextMessageAsync(message.Chat.Id, "Cum", replyMarkup: Buttons.ADMIN_MAIN_MENU);
-        }
-        else if (permissions == Permissions.TEACHER)
-        {
-            await bot.SendTextMessageAsync(message.Chat.Id, "Cum", replyMarkup: Buttons.TEACHER_MAIN_MENU);
+            long userId = message.From.Id;
+            HandlePlannedAction(message, _plannedActionsDatabase.GetBotMessageId(userId),
+                _plannedActionsDatabase.GetAction(userId));
+            return;
         }
 
         string[] args = message.Text.Split(' ');
         if (!_bouncer.CheckIfCommandIsCorrect(args[0]))
         {
+            Command permissions = _userDatabase.GetPermissions(message.From.Id);
+            if (permissions == Permissions.ADMIN)
+            {
+                await bot.SendTextMessageAsync(message.Chat.Id, "Панель управления.",
+                    replyMarkup: Buttons.ADMIN_MAIN_MENU);
+            }
+            else if (permissions == Permissions.TEACHER)
+            {
+                await bot.SendTextMessageAsync(message.Chat.Id, "Панель управления.",
+                    replyMarkup: Buttons.TEACHER_MAIN_MENU);
+            }
+
             return;
         }
 
@@ -116,8 +129,8 @@ class Program
     {
         string[] dataString = callbackQuery.Data.Split('_');
         Command firstData = (Command)Int32.Parse(dataString[0]);
-        int secondData = 0;
-        if (dataString.Length > 1) secondData = Int32.Parse(dataString[1]);
+        byte secondData = 0;
+        if (dataString.Length > 1) secondData = byte.Parse(dataString[1]);
         switch (dataString.Length)
         {
             case 1:
@@ -127,15 +140,22 @@ class Program
                         break;
                     case Command.SendMessageTo:
                         _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
-                            "Выберите классы, в чаты которых будет отправлено сообщение.", markup: Buttons.SENDMESSAGETO_MENU);
+                            "Перешлите сообщение, которое будет отправлено.");
+                        _plannedActionsDatabase.AddUser(callbackQuery.From.Id,
+                            Actions.SEND_MESSAGE_TO, 0, callbackQuery.Message.MessageId, callbackQuery.Message.Chat.Id);
                         break;
                     case Command.CreateTeacherToken:
+                        _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
+                            "Выберите тип создаваемого токена.", markup: Buttons.TOKEN_MENU);
+                        _plannedActionsDatabase.AddUser(callbackQuery.From.Id,
+                            Actions.CREATE_TOKEN, 0, callbackQuery.Message.MessageId, callbackQuery.Message.Chat.Id);
                         break;
                     case Command.RemoveToken:
                         break;
                     case Command.ShowAllTokens:
                         break;
                 }
+
                 break;
             case 2:
                 switch (firstData)
@@ -144,17 +164,124 @@ class Program
                         switch (secondData)
                         {
                             case 12:
-                                _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
-                                    "Выберите команду.", markup: Buttons.ADMIN_MAIN_MENU); // TODO: менять менюкши в зависимости от юзера.
+                                InlineKeyboardMarkup markup = Buttons.TEACHER_MAIN_MENU;
+                                if (_userDatabase.GetPermissions(callbackQuery.From.Id) == Permissions.ADMIN)
+                                {
+                                    markup = Buttons.ADMIN_MAIN_MENU;
+                                }
+
+                                _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id,
+                                    callbackQuery.Message.MessageId,
+                                    "Панель управления.",
+                                    markup: markup);
+                                _plannedActionsDatabase.RemoveData(callbackQuery.From.Id);
                                 break;
                             default:
-                                // _commandHandler.HandleCommand();
-                                // TODO: здесь с первого по одиннадцатый.
-                            break;
+                                _sender.SendOutMessageTo(callbackQuery.Message.Chat.Id,
+                                    _plannedActionsDatabase.GetUserMessageId(callbackQuery.From.Id), secondData);
+                                break;
+                        }
+                        break;
+                    case Command.CreateTeacherToken:
+                        string token;
+                        switch (secondData)
+                        {
+                            case 1:
+                                token = TokenManager.CreateTeacherAccessToken();
+                                _userDatabase.AddToken(token); // TODO: перенести в нормальный класс и сделать красиво.
+                                _sender.SendBack(callbackQuery.Message.Chat.Id,
+                                    $"Токен учителя создан\\. Используйте /register \\[ваш токен\\], чтобы зарегистрироваться\\.\n`{token}`",
+                                    ParseMode.MarkdownV2);
+                                break;
+                            case 2:
+                                token = TokenManager.CreateAdminAccessToken();
+                                _userDatabase.AddToken(token); // TODO: перенести в нормальный класс и сделать красиво.
+                                _sender.SendBack(callbackQuery.Message.Chat.Id,
+                                    $"Токен администратора создан\\. Используйте /register \\[ваш токен\\], чтобы зарегистрироваться\\.\n`{token}`",
+                                    ParseMode.MarkdownV2);
+                                break;
+                            case 3: // Это назад.
+                                InlineKeyboardMarkup markup = Buttons.TEACHER_MAIN_MENU;
+                                if (_userDatabase.GetPermissions(callbackQuery.From.Id) == Permissions.ADMIN)
+                                {
+                                    markup = Buttons.ADMIN_MAIN_MENU;
+                                }
+
+                                _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id,
+                                    callbackQuery.Message.MessageId,
+                                    "Панель управления.",
+                                    markup: markup);
+                                _plannedActionsDatabase.RemoveData(callbackQuery.From.Id);
+                                break;
                         }
                         break;
                 }
+
                 break;
+        }
+    }
+
+    private static async Task HandlePlannedAction(Message userMessage, int botMessageId, string action)
+    {
+        if (userMessage.ReplyToMessage == null)
+        {
+            return;
+        }
+
+        string[] args = action.Split('_');
+        Command firstArg = (Command)uint.Parse(args[0]);
+        int secondArg = 0;
+        switch (args.Length)
+        {
+            case 1:
+                switch (firstArg)
+                {
+                    case Command.Register:
+                        break;
+                    case Command.SendMessageTo:
+                        _plannedActionsDatabase.AddUser(userMessage.From.Id, Actions.SEND_MESSAGE_TO_GRADE_MENU,
+                            userMessage.ReplyToMessage.MessageId, botMessageId, userMessage.Chat.Id);
+                        await _sender.EditTextMessageAsync(userMessage.Chat.Id, botMessageId,
+                            "Выберите чаты классов, в которые будут отправлены сообщения.",
+                            markup: Buttons.SENDMESSAGETO_MENU);
+                        break;
+                    case Command.CreateTeacherToken:
+                        break;
+                    case Command.RemoveToken:
+                        break;
+                    case Command.ShowAllTokens:
+                        break;
+                }
+
+                break;
+            case 2:
+                if (int.TryParse(args[1], out secondArg))
+                {
+                    switch (firstArg)
+                    {
+                        case Command.SendMessageTo:
+                            switch (secondArg)
+                            {
+                                case 0:
+                                    _sender.EditTextMessageAsync(userMessage.Chat.Id, botMessageId,
+                                        "Выберите чаты классов, в которые будет отправлено сообщение.",
+                                        markup: Buttons.ADMIN_MAIN_MENU); // TODO: 
+                                    break;
+                            }
+
+                            break;
+                        case Command.CreateTeacherToken:
+                            break;
+                        case Command.CreateAdminToken:
+                            break;
+                        case Command.RemoveToken:
+                            break;
+                        case Command.ShowAllTokens:
+                            break;
+                    }
+                }
+
+                return;
         }
     }
 
