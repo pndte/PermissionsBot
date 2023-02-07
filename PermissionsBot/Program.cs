@@ -1,4 +1,5 @@
-﻿using PermissionsBot;
+﻿using System.Text;
+using PermissionsBot;
 using PermissionsBot.Bouncer;
 using PermissionsBot.Handlers.Commands;
 using PermissionsBot.DB;
@@ -103,13 +104,16 @@ class Program
             {
                 await bot.SendTextMessageAsync(message.Chat.Id, "Панель управления.",
                     replyMarkup: Buttons.ADMIN_MAIN_MENU);
+                return;
             }
             else if (permissions == Permissions.TEACHER)
             {
                 await bot.SendTextMessageAsync(message.Chat.Id, "Панель управления.",
                     replyMarkup: Buttons.TEACHER_MAIN_MENU);
+                return;
             }
-
+            await bot.SendTextMessageAsync(message.Chat.Id, "Регистрация",
+                replyMarkup: Buttons.REGISTER_MENU);
             return;
         }
 
@@ -136,11 +140,21 @@ class Program
             case 1:
                 switch (firstData)
                 {
-                    case Command.SendMessage:
+                    case Command.Register:
+                        _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
+                            "Введите токен доступа.");
+                        _plannedActionsDatabase.AddUser(callbackQuery.From.Id,
+                            Actions.REGISTER, 0, callbackQuery.Message.MessageId, callbackQuery.Message.Chat.Id);
+                        break;
+                    case Command.SendMessage: // TODO: вынести в отдельный метод.
+                        _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
+                            "Ответьте на сообщение, которое будет отправлено.");
+                        _plannedActionsDatabase.AddUser(callbackQuery.From.Id,
+                            Actions.SEND_MESSAGE, 0, callbackQuery.Message.MessageId, callbackQuery.Message.Chat.Id);
                         break;
                     case Command.SendMessageTo:
                         _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
-                            "Перешлите сообщение, которое будет отправлено.");
+                            "Ответьте на сообщение, которое будет отправлено.");
                         _plannedActionsDatabase.AddUser(callbackQuery.From.Id,
                             Actions.SEND_MESSAGE_TO, 0, callbackQuery.Message.MessageId, callbackQuery.Message.Chat.Id);
                         break;
@@ -151,8 +165,36 @@ class Program
                             Actions.CREATE_TOKEN, 0, callbackQuery.Message.MessageId, callbackQuery.Message.Chat.Id);
                         break;
                     case Command.RemoveToken:
+                        _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId,
+                            "Укажите токен, который будет удалён из базы данных.");
+                        _plannedActionsDatabase.AddUser(callbackQuery.From.Id,
+                            Actions.REMOVE_TOKEN, 0, callbackQuery.Message.MessageId, callbackQuery.Message.Chat.Id);
                         break;
                     case Command.ShowAllTokens:
+                        string[] text = _userDatabase.ShowTable();
+                        for (int i = 0; i < text.Length; i += 10)
+                        {
+                            StringBuilder stringBuilder = new StringBuilder();
+                            for (int j = i; j < i + 10 && j < text.Length; j++)
+                            {
+                                stringBuilder.Append(text[j]);
+                            }
+
+                            _sender.SendBack(callbackQuery.Message.Chat.Id, stringBuilder.ToString(),
+                                ParseMode.MarkdownV2);
+                        }
+
+                        InlineKeyboardMarkup markup = Buttons.TEACHER_MAIN_MENU;
+                        if (_userDatabase.GetPermissions(callbackQuery.From.Id) == Permissions.ADMIN)
+                        {
+                            markup = Buttons.ADMIN_MAIN_MENU;
+                        }
+
+                        await _sender.SendBack(callbackQuery.Message.Chat.Id,
+                            "Панель управления.",
+                            markup: markup);
+                        await _botClient.DeleteMessageAsync(callbackQuery.Message.Chat.Id,
+                            callbackQuery.Message.MessageId);
                         break;
                 }
 
@@ -181,6 +223,7 @@ class Program
                                     _plannedActionsDatabase.GetUserMessageId(callbackQuery.From.Id), secondData);
                                 break;
                         }
+
                         break;
                     case Command.CreateTeacherToken:
                         string token;
@@ -207,13 +250,15 @@ class Program
                                     markup = Buttons.ADMIN_MAIN_MENU;
                                 }
 
-                                _sender.EditTextMessageAsync(callbackQuery.Message.Chat.Id,
-                                    callbackQuery.Message.MessageId,
+                                await _sender.SendBack(callbackQuery.Message.Chat.Id,
                                     "Панель управления.",
                                     markup: markup);
+                                await _botClient.DeleteMessageAsync(callbackQuery.Message.Chat.Id,
+                                    callbackQuery.Message.MessageId);
                                 _plannedActionsDatabase.RemoveData(callbackQuery.From.Id);
                                 break;
                         }
+
                         break;
                 }
 
@@ -223,11 +268,6 @@ class Program
 
     private static async Task HandlePlannedAction(Message userMessage, int botMessageId, string action)
     {
-        if (userMessage.ReplyToMessage == null)
-        {
-            return;
-        }
-
         string[] args = action.Split('_');
         Command firstArg = (Command)uint.Parse(args[0]);
         int secondArg = 0;
@@ -237,51 +277,92 @@ class Program
                 switch (firstArg)
                 {
                     case Command.Register:
+                        string messageTextRegister = userMessage.Text;
+
+                        if (!_userDatabase.ContainFreeToken(messageTextRegister))
+                        {
+                            _sender.SendBack(userMessage.Chat.Id, "Ошибка: неверно введён токен доступа.");
+                            return;
+                        }
+
+                        long userId = userMessage.From.Id;
+                        _userDatabase.AddUserToToken(messageTextRegister, userId);
+                        _sender.SendBack(userMessage.Chat.Id, "Вы успешно зарегистрированы!");
+                        _plannedActionsDatabase.RemoveData(userMessage.From.Id);
+                        Command permissionsRegister = _userDatabase.GetPermissions(userMessage.From.Id);
+                        if (permissionsRegister == Permissions.ADMIN)
+                        {
+                            await _botClient.SendTextMessageAsync(userMessage.Chat.Id, "Панель управления.",
+                                replyMarkup: Buttons.ADMIN_MAIN_MENU);
+                        }
+                        else if (permissionsRegister == Permissions.TEACHER)
+                        {
+                            await _botClient.SendTextMessageAsync(userMessage.Chat.Id, "Панель управления.",
+                                replyMarkup: Buttons.TEACHER_MAIN_MENU);
+                        }
+                        break;
+                    case Command.SendMessage:
+                        if (userMessage.ReplyToMessage == null) // TODO: переделать.
+                        {
+                            return;
+                        }
+
+                        _sender.SendOutMessage(userMessage.ReplyToMessage);
+                        InlineKeyboardMarkup markup = Buttons.TEACHER_MAIN_MENU;
+                        if (_userDatabase.GetPermissions(userMessage.From.Id) == Permissions.ADMIN)
+                        {
+                            markup = Buttons.ADMIN_MAIN_MENU;
+                        }
+
+                        await _sender.EditTextMessageAsync(userMessage.Chat.Id,
+                            botMessageId,
+                            "Панель управления.",
+                            markup: markup);
+                        _plannedActionsDatabase.RemoveData(userMessage.From.Id);
+                        await _botClient.DeleteMessageAsync(userMessage.Chat.Id,
+                            userMessage.MessageId); // TODO: перенести в сендера
                         break;
                     case Command.SendMessageTo:
+                        if (userMessage.ReplyToMessage == null)
+                        {
+                            return;
+                        }
+
                         _plannedActionsDatabase.AddUser(userMessage.From.Id, Actions.SEND_MESSAGE_TO_GRADE_MENU,
                             userMessage.ReplyToMessage.MessageId, botMessageId, userMessage.Chat.Id);
                         await _sender.EditTextMessageAsync(userMessage.Chat.Id, botMessageId,
                             "Выберите чаты классов, в которые будут отправлены сообщения.",
                             markup: Buttons.SENDMESSAGETO_MENU);
-                        break;
-                    case Command.CreateTeacherToken:
+                        await _botClient.DeleteMessageAsync(userMessage.Chat.Id, userMessage.MessageId);
                         break;
                     case Command.RemoveToken:
-                        break;
-                    case Command.ShowAllTokens:
+                        Command permissions = _userDatabase.GetPermissions(userMessage.From.Id);
+                        InlineKeyboardMarkup markupToSend = Buttons.TEACHER_MAIN_MENU;
+                        if (permissions == Permissions.ADMIN)
+                        {
+                            markupToSend = Buttons.ADMIN_MAIN_MENU;
+                        }
+
+                        string messageText = userMessage.Text; // TODO: дубляж кода из command handler, убрать.
+
+                        if (!_userDatabase.ContainToken(messageText))
+                        {
+                            await _sender.SendBack(userMessage.Chat.Id, "Ошибка: неверно введён токен доступа.");
+                            await _sender.SendBack(userMessage.Chat.Id, "Панель управления.",
+                                markup: markupToSend);
+                            _plannedActionsDatabase.RemoveData(userMessage.From.Id);
+                            return;
+                        }
+
+                        _userDatabase.RemoveData(messageText);
+                        await _sender.SendBack(userMessage.Chat.Id, "Токен доступа успешно удалён.");
+                        _plannedActionsDatabase.RemoveData(userMessage.From.Id);
+                        await _sender.SendBack(userMessage.Chat.Id, "Панель управления.",
+                            markup: markupToSend);
                         break;
                 }
 
                 break;
-            case 2:
-                if (int.TryParse(args[1], out secondArg))
-                {
-                    switch (firstArg)
-                    {
-                        case Command.SendMessageTo:
-                            switch (secondArg)
-                            {
-                                case 0:
-                                    _sender.EditTextMessageAsync(userMessage.Chat.Id, botMessageId,
-                                        "Выберите чаты классов, в которые будет отправлено сообщение.",
-                                        markup: Buttons.ADMIN_MAIN_MENU); // TODO: 
-                                    break;
-                            }
-
-                            break;
-                        case Command.CreateTeacherToken:
-                            break;
-                        case Command.CreateAdminToken:
-                            break;
-                        case Command.RemoveToken:
-                            break;
-                        case Command.ShowAllTokens:
-                            break;
-                    }
-                }
-
-                return;
         }
     }
 

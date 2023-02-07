@@ -4,6 +4,15 @@ namespace PermissionsBot;
 
 public static class Buttons
 {
+    public static readonly InlineKeyboardMarkup REGISTER_MENU = new InlineKeyboardMarkup(
+        new InlineKeyboardButton[][]
+        {
+            new InlineKeyboardButton[]
+            {
+                new InlineKeyboardButton("Зарегистрироваться по токену")
+                    { CallbackData = Actions.REGISTER },
+            }
+        });
     public static readonly InlineKeyboardMarkup TEACHER_MAIN_MENU = new InlineKeyboardMarkup(
         new InlineKeyboardButton[][]
         {

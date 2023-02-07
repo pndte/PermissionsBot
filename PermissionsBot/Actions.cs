@@ -2,6 +2,10 @@ namespace PermissionsBot;
 
 public static class Actions
 {
+    public readonly static string REGISTER = $"{Command.Register.GetHashCode()}";
+
+    public readonly static string SEND_MESSAGE = $"{Command.SendMessage.GetHashCode()}";
+
     public readonly static string SEND_MESSAGE_TO = $"{Command.SendMessageTo.GetHashCode()}";
     public readonly static string SEND_MESSAGE_TO_GRADE_MENU = $"{Command.SendMessageTo.GetHashCode()}_0";
     public readonly static string SEND_MESSAGE_TO_1 = $"{Command.SendMessageTo.GetHashCode()}_1";
@@ -20,4 +24,6 @@ public static class Actions
     // TODO: говнокодище, убрать.
     public readonly static string CREATE_TOKEN_TEACHER = $"{Command.CreateTeacherToken.GetHashCode()}_1";
     public readonly static string CREATE_TOKEN_ADMIN = $"{Command.CreateTeacherToken.GetHashCode()}_2";
+    
+    public readonly static string REMOVE_TOKEN = $"{Command.RemoveToken.GetHashCode()}";
 }

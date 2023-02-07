@@ -17,7 +17,6 @@ public abstract class AbstractDatabase
         }));
     }
 
-
     protected string TableName;
 
     protected delegate void DatabaseProcedure(SqliteConnection connection);

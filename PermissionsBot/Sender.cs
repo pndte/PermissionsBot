@@ -26,7 +26,7 @@ public class Sender
     {
     }
 
-    public async void SendBack(long chatId, string text)
+    public async Task SendBack(long chatId, string text)
     {
         await _botClient.SendTextMessageAsync(chatId, text);
     }
@@ -37,9 +37,14 @@ public class Sender
         await _botClient.EditMessageTextAsync(chatId, messageId, text, parseMode, replyMarkup: markup);
     }
 
-    public async void SendBack(long chatId, string text, ParseMode parseMode)
+    public async Task SendBack(long chatId, string text, ParseMode parseMode)
     {
         await _botClient.SendTextMessageAsync(chatId, text, parseMode);
+    }
+    
+    public async Task SendBack(long chatId, string text, ParseMode? parseMode = null, InlineKeyboardMarkup? markup = null)
+    {
+        await _botClient.SendTextMessageAsync(chatId, text, parseMode, replyMarkup: markup);
     }
 
     /// <summary>
