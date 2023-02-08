@@ -19,11 +19,13 @@ public static class Actions
     public readonly static string SEND_MESSAGE_TO_9 = $"{Command.SendMessageTo.GetHashCode()}_9";
     public readonly static string SEND_MESSAGE_TO_10 = $"{Command.SendMessageTo.GetHashCode()}_10";
     public readonly static string SEND_MESSAGE_TO_11 = $"{Command.SendMessageTo.GetHashCode()}_11";
+    public readonly static string SEND_MESSAGE_TO_BACK = $"{Command.SendMessageTo.GetHashCode()}_12";
 
     public readonly static string CREATE_TOKEN = $"{Command.CreateTeacherToken.GetHashCode()}";
     // TODO: говнокодище, убрать.
     public readonly static string CREATE_TOKEN_TEACHER = $"{Command.CreateTeacherToken.GetHashCode()}_1";
     public readonly static string CREATE_TOKEN_ADMIN = $"{Command.CreateTeacherToken.GetHashCode()}_2";
+    public readonly static string CREATE_TOKEN_BACK = $"{Command.CreateTeacherToken.GetHashCode()}_3";
     
     public readonly static string REMOVE_TOKEN = $"{Command.RemoveToken.GetHashCode()}";
 }

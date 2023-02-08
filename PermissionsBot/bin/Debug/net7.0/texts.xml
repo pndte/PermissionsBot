@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<texts>
+    <messages>
+        <default>
+        </default>
+
+        <buttons>
+            
+        </buttons>
+        
+        <errors>
+        </errors>
+    </messages>
+
+    <buttons>
+        <register>Зарегистрироваться по токену</register>
+        <sendmessage>Сообщение всем</sendmessage>
+        <sendmessageto>Сообщение к</sendmessageto>
+        <createtoken>Создать токен доступа</createtoken>
+        <createtokenteacher>Создать токен учителя</createtokenteacher>
+        <createtokenadmin>Создать токен администратора</createtokenadmin>
+        <removetoken>Удалить токен доступа</removetoken>
+        <showalltokens>Показать все токены доступа</showalltokens>
+        <firstgrade>1 класс</firstgrade>
+        <secondgrade>2 класс</secondgrade>
+        <thirdgrade>3 класс</thirdgrade>
+        <forthgrade>4 класс</forthgrade>
+        <fifthgrade>5 класс</fifthgrade>
+        <sixthgrade>6 класс</sixthgrade>
+        <seventhgrade>7 класс</seventhgrade>
+        <eighthgrade>8 класс</eighthgrade>
+        <ninthgrade>9 класс</ninthgrade>
+        <tenthgrade>10 класс</tenthgrade>
+        <eleventhgrade>11 класс</eleventhgrade>
+        <back>Назад</back>
+    </buttons>
+</texts>
+

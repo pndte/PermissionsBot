@@ -21,6 +21,8 @@ class Program
     private static UserDatabase _userDatabase;
     private static ChatDatabase _chatDatabase;
     private static PlannedActionsDatabase _plannedActionsDatabase;
+    
+    public static Texts Texts = new Texts("texts.xml");
 
     public static async Task Main(string[] args)
     {
@@ -64,7 +66,7 @@ class Program
         await _botClient.SetMyCommandsAsync(commands);
         _botClient.StartReceiving(updateHandler: UpdateHandler, pollingErrorHandler: PollingErrorHandler);
 
-        _logger = new Logger();
+        _logger = new Logger();         
         _bouncer = new Bouncer(_logger);
         _userDatabase = new UserDatabase("userdata");
         _chatDatabase = new ChatDatabase("chatdata");
