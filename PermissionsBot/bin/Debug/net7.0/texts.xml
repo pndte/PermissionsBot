@@ -2,15 +2,28 @@
 <texts>
     <messages>
         <default>
+            <register>Регистрация</register>
+            <teachermainmenu>Панель управления: учитель</teachermainmenu>
+            <adminmainmenu>Панель управления: администратор</adminmainmenu>
+            <tokenremove>Токен доступа успешно удалён</tokenremove>
         </default>
-
-        <buttons>
-            
-        </buttons>
         
         <errors>
         </errors>
     </messages>
+    
+    <commands>
+        <register>Зарегистрироваться, используя токен доступа.</register>
+        <sendmessage>Разослать сообщение по ВСЕМ подписанным чатам.</sendmessage>
+        <sendmessageto>Разослать сообщение по ВСЕМ УКАЗАННЫМ чатам.</sendmessageto>
+        <makesilent>Отключить callback-сообщения бота от чата.</makesilent>
+        <subscribe>Подписать чат на рассылку сообщений.</subscribe>
+        <unsubscribe>Отписать чат от рассылки сообщений.</unsubscribe>
+        <addteachertoken>Сгенерировать токен доступа для учителя.</addteachertoken>
+        <addadmintoken>Сгенерировать токен доступа для администратора.</addadmintoken>
+        <removetoken>Удалить токен доступа.</removetoken>
+        <showalltokens>Показать все токены доступа.</showalltokens>
+    </commands>
 
     <buttons>
         <register>Зарегистрироваться по токену</register>

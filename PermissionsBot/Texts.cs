@@ -19,4 +19,14 @@ public class Texts
     {
         return _xmlRoot.SelectSingleNode($"//buttons/{buttonName}").InnerText;
     }
+
+    public string GetMessageText(string messageName)
+    {
+        return _xmlRoot.SelectSingleNode($"//messages//default/{messageName}").InnerText;
+    }
+
+    public string GetCommandDescriptionText(string commandName)
+    {
+        return _xmlRoot.SelectSingleNode($"//commands/{commandName}").InnerText;
+    }
 }

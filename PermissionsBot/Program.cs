@@ -21,7 +21,7 @@ class Program
     private static UserDatabase _userDatabase;
     private static ChatDatabase _chatDatabase;
     private static PlannedActionsDatabase _plannedActionsDatabase;
-    
+
     public static Texts Texts = new Texts("texts.xml");
 
     public static async Task Main(string[] args)
@@ -50,23 +50,24 @@ class Program
         _botClient = new TelegramBotClient(token);
         List<BotCommand> commands = new List<BotCommand>()
         {
-            new BotCommand() { Command = "/register", Description = "Зарегистрироваться, используя токен доступа." },
+            new BotCommand() { Command = "/register", Description = Texts.GetCommandDescriptionText("register") },
             new BotCommand()
-                { Command = "/sendmessage", Description = "Разослать сообщение по ВСЕМ подписанным чатам." },
+                { Command = "/sendmessage", Description = Texts.GetCommandDescriptionText("sendmessage") },
             new BotCommand()
-                { Command = "/sendmessageto", Description = "Разослать сообщение по ВСЕМ УКАЗАННЫМ чатам." },
-            new BotCommand() { Command = "/makesilent", Description = "Отключить callback-сообщения бота от чата." },
-            new BotCommand() { Command = "/subscribe", Description = "Подписать чат на рассылку сообщений." },
-            new BotCommand() { Command = "/unsubscribe", Description = "Отписать чат от рассылки сообщений." },
-            new BotCommand() { Command = "/addteachertoken", Description = "Сгенерировать токен доступа для учителя." },
-            new BotCommand() { Command = "/removetoken", Description = "Удалить токен доступа." },
-            new BotCommand() { Command = "/addadmintoken", Description = "Сгенерировать токен доступа для админа." },
-            new BotCommand() { Command = "/showalltokens", Description = "Показать все токены доступа." },
+                { Command = "/sendmessageto", Description = Texts.GetCommandDescriptionText("sendmessageto") },
+            new BotCommand() { Command = "/makesilent", Description = Texts.GetCommandDescriptionText("makesilent") },
+            new BotCommand() { Command = "/subscribe", Description = Texts.GetCommandDescriptionText("subscribe") },
+            new BotCommand() { Command = "/unsubscribe", Description = Texts.GetCommandDescriptionText("unsubscribe") },
+            new BotCommand()
+                { Command = "/addteachertoken", Description = Texts.GetCommandDescriptionText("addteachertoken") },
+            new BotCommand() { Command = "/addadmintoken", Description = Texts.GetCommandDescriptionText("addadmintoken") },
+            new BotCommand() { Command = "/removetoken", Description = Texts.GetCommandDescriptionText("removetoken") },
+            new BotCommand() { Command = "/showalltokens", Description = Texts.GetCommandDescriptionText("showalltokens") },
         };
         await _botClient.SetMyCommandsAsync(commands);
         _botClient.StartReceiving(updateHandler: UpdateHandler, pollingErrorHandler: PollingErrorHandler);
 
-        _logger = new Logger();         
+        _logger = new Logger();
         _bouncer = new Bouncer(_logger);
         _userDatabase = new UserDatabase("userdata");
         _chatDatabase = new ChatDatabase("chatdata");
@@ -104,17 +105,18 @@ class Program
             Command permissions = _userDatabase.GetPermissions(message.From.Id);
             if (permissions == Permissions.ADMIN)
             {
-                await bot.SendTextMessageAsync(message.Chat.Id, "Панель управления.",
+                await bot.SendTextMessageAsync(message.Chat.Id, Texts.GetMessageText("adminmainmenu"),
                     replyMarkup: Buttons.ADMIN_MAIN_MENU);
                 return;
             }
             else if (permissions == Permissions.TEACHER)
             {
-                await bot.SendTextMessageAsync(message.Chat.Id, "Панель управления.",
+                await bot.SendTextMessageAsync(message.Chat.Id, Texts.GetMessageText("teachermainmenu"),
                     replyMarkup: Buttons.TEACHER_MAIN_MENU);
                 return;
             }
-            await bot.SendTextMessageAsync(message.Chat.Id, "Регистрация",
+
+            await bot.SendTextMessageAsync(message.Chat.Id, Texts.GetMessageText("register"),
                 replyMarkup: Buttons.REGISTER_MENU);
             return;
         }
@@ -302,6 +304,7 @@ class Program
                             await _botClient.SendTextMessageAsync(userMessage.Chat.Id, "Панель управления.",
                                 replyMarkup: Buttons.TEACHER_MAIN_MENU);
                         }
+
                         break;
                     case Command.SendMessage:
                         if (userMessage.ReplyToMessage == null) // TODO: переделать.
@@ -340,9 +343,11 @@ class Program
                     case Command.RemoveToken:
                         Command permissions = _userDatabase.GetPermissions(userMessage.From.Id);
                         InlineKeyboardMarkup markupToSend = Buttons.TEACHER_MAIN_MENU;
+                        string textToSend = Texts.GetMessageText("teachermainmenu");
                         if (permissions == Permissions.ADMIN)
                         {
                             markupToSend = Buttons.ADMIN_MAIN_MENU;
+                            textToSend = Texts.GetMessageText("adminmainmenu");
                         }
 
                         string messageText = userMessage.Text; // TODO: дубляж кода из command handler, убрать.
@@ -350,16 +355,16 @@ class Program
                         if (!_userDatabase.ContainToken(messageText))
                         {
                             await _sender.SendBack(userMessage.Chat.Id, "Ошибка: неверно введён токен доступа.");
-                            await _sender.SendBack(userMessage.Chat.Id, "Панель управления.",
+                            await _sender.SendBack(userMessage.Chat.Id, textToSend,
                                 markup: markupToSend);
-                            _plannedActionsDatabase.RemoveData(userMessage.From.Id);
+                            _plannedActionsDatabase.RemoveData(userMessage.From.Id); // TODO: ассинхронность.
                             return;
                         }
 
                         _userDatabase.RemoveData(messageText);
-                        await _sender.SendBack(userMessage.Chat.Id, "Токен доступа успешно удалён.");
+                        await _sender.SendBack(userMessage.Chat.Id, Texts.GetMessageText("tokenremove"));
                         _plannedActionsDatabase.RemoveData(userMessage.From.Id);
-                        await _sender.SendBack(userMessage.Chat.Id, "Панель управления.",
+                        await _sender.SendBack(userMessage.Chat.Id, textToSend,
                             markup: markupToSend);
                         break;
                 }
