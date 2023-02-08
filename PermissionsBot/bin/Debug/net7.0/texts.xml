@@ -3,12 +3,26 @@
     <messages>
         <default>
             <register>Регистрация</register>
+            <registersuccess>Вы успешно зарегистрированы!</registersuccess>
             <teachermainmenu>Панель управления: учитель</teachermainmenu>
             <adminmainmenu>Панель управления: администратор</adminmainmenu>
             <tokenremove>Токен доступа успешно удалён</tokenremove>
+            <subscribesuccess>Чат успешно подписан.</subscribesuccess>
+            <unsubscribesuccess>Чат успешно отписан.</unsubscribesuccess>
+            <sendmessagetosuccess>Сообщение успешно разослано по указанным чатам.</sendmessagetosuccess>
+            <teachertokencreatedmarkdown>Токен учителя создан\\. Используйте /register \\[ваш токен\\], чтобы зарегистрироваться\\.\n</teachertokencreatedmarkdown>
+            <admintokencreatedmarkdown>Токен администратора создан\\. Используйте /register \\[ваш токен\\], чтобы зарегистрироваться\\.\n</admintokencreatedmarkdown>
         </default>
         
         <errors>
+            <unidentifiedcommand>Ошибка: неопознанная команда.</unidentifiedcommand>
+            <subscribeprivatechat>Ошибка: подписка и отписка работает только в групповых чатах.</subscribeprivatechat>
+            <chatnotsubscribed>Ошибка: чат не подписан.</chatnotsubscribed>
+            <messagenotreplied>Ошибка: перешлите сообщение, которое будет отправлено.</messagenotreplied>
+            <gradesnotspecified>Ошибка: укажите номера получающих сообщения классов.</gradesnotspecified>
+            <gradenumbernotcorrect>Ошибка: неверно введён номер класса.</gradenumbernotcorrect>
+            <tokennotentered>Ошибка: укажите токен доступа.</tokennotentered>
+            <tokennotcorrect>Ошибка: неверно введён токен доступа.</tokennotcorrect>
         </errors>
     </messages>
     

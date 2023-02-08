@@ -25,6 +25,11 @@ public class Texts
         return _xmlRoot.SelectSingleNode($"//messages//default/{messageName}").InnerText;
     }
 
+    public string GetErrorText(string errorName)
+    {
+        return _xmlRoot.SelectSingleNode($"//messages//errors/{errorName}").InnerText;
+    }
+
     public string GetCommandDescriptionText(string commandName)
     {
         return _xmlRoot.SelectSingleNode($"//commands/{commandName}").InnerText;

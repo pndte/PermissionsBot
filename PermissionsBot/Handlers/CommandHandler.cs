@@ -43,7 +43,7 @@ public class CommandHandler
             case Command.MakeSilent:
                 break;
             case Command.Subscribe:
-                SubscribeChat(message); // TODO: дб.
+                SubscribeChat(message);
                 break;
             case Command.Unsubscribe:
                 UnsubscribeChat(message);
@@ -61,7 +61,7 @@ public class CommandHandler
                 ShowAllTokens(message);
                 break;
             default:
-                _sender.SendBack(message.Chat.Id, "Ошибка: неопознанная команда.");
+                _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("unidentifiedcommand"));
                 return;
         }
     }
@@ -70,33 +70,33 @@ public class CommandHandler
     {
         if (message.Chat.Type != ChatType.Group)
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: отписать от сообщений можно только групповой чат.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("subscribeprivatechat"));
             return;
         }
 
         if (!_chatDatabase.ContainChat(message.Chat.Id))
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: чат не подписан.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("chatnotsubscribed"));
             return;
         }
 
         _chatDatabase.RemoveData(message.Chat.Id);
-        _sender.SendBack(message.Chat.Id, "Чат успешно отписан.");
+        _sender.SendBack(message.Chat.Id, Program.Texts.GetMessageText("unsubscribesuccess"));
     }
 
-    private void SendMessageTo(Message message)
+    private void SendMessageTo(Message message) 
     {
         Message? repliedMessage = message.ReplyToMessage;
         if (repliedMessage == null)
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: перешлите сообщение, которое будет отправлено.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("messagenotreplied"));
             return;
         }
 
-        string[] args = message.Text.Split(' ');
+        string[] args = message.Text.Split(' '); 
         if (args.Length != 2)
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: укажите номера получающих сообщения классов.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("gradesnotspecified"));
             return;
         }
 
@@ -109,39 +109,39 @@ public class CommandHandler
                 byte grade;
                 if (!byte.TryParse(gradesStrings[i], out grade))
                 {
-                    _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён номер класса.");
+                    _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("gradenumbernotcorrect"));
                     return;
                 }
 
                 if (grade > 11 || grade < 1)
                 {
-                    _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён номер класса.");
+                    _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("gradenumbernotcorrect"));
                     return;
                 }
 
                 grades[i] = grade;
             }
 
-            _sender.SendOutMessageTo(repliedMessage, grades);
-            _sender.SendBack(message.Chat.Id, "Сообщение успешно разослано по указанным чатам.");
+            _sender.SendOutMessageTo(repliedMessage, grades); 
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetMessageText("sendmessagetosuccess"));
             return;
         }
 
         byte singleGrade; // TODO: сделать максимум в 11 классов.
         if (!byte.TryParse(args[1], out singleGrade))
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён номер класса.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("gradenumbernotcorrect"));
             return;
         }
 
         if (singleGrade > 11 || singleGrade < 1)
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён номер класса.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("gradenumbernotcorrect"));
             return;
         }
 
         _sender.SendOutMessageTo(repliedMessage, singleGrade);
-        _sender.SendBack(message.Chat.Id, "Сообщение успешно разослано по указанным чатам.");
+        _sender.SendBack(message.Chat.Id, Program.Texts.GetMessageText("sendmessagetosuccess"));
     }
 
     private void ShowAllTokens(Message message)
@@ -164,18 +164,18 @@ public class CommandHandler
         string[] args = message.Text.Split(' ');
         if (args.Length != 2)
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: укажите токен доступа.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("tokennotentered"));
             return;
         }
 
         if (!_userDatabase.ContainToken(args[1]))
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён токен доступа.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("tokennotcorrect"));
             return;
         }
 
         _userDatabase.RemoveData(args[1]);
-        _sender.SendBack(message.Chat.Id, "Токен доступа успешно удалён.");
+        _sender.SendBack(message.Chat.Id, Program.Texts.GetMessageText("tokenremove"));
     }
 
     private void Register(Message message)
@@ -183,19 +183,19 @@ public class CommandHandler
         string[] args = message.Text.Split(' ');
         if (args.Length != 2)
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: укажите токен доступа.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("tokennotentered"));
             return;
         }
 
         if (!_userDatabase.ContainFreeToken(args[1]))
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: неверно введён токен доступа.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("tokennotcorrect"));
             return;
         }
 
         long l = message.From.Id;
         _userDatabase.AddUserToToken(args[1], l);
-        _sender.SendBack(message.Chat.Id, "Вы успешно зарегистрированы!");
+        _sender.SendBack(message.Chat.Id, Program.Texts.GetMessageText("registersuccess"));
     }
 
     private void CreateAdminToken(Message message)
@@ -204,7 +204,7 @@ public class CommandHandler
         _logger.Log($"Новый токен был создан!\n{adminAccessToken}");
         _userDatabase.AddToken(adminAccessToken);
         _sender.SendBack(message.Chat.Id,
-            $"Токен администратора создан\\. Используйте /register \\[ваш токен\\], чтобы зарегистрироваться\\.\n`{adminAccessToken}`",
+            $"{Program.Texts.GetMessageText("admintokencreatedmarkdown")}`{adminAccessToken}`",
             ParseMode.MarkdownV2);
     }
 
@@ -214,7 +214,7 @@ public class CommandHandler
         _logger.Log($"Новый токен был создан!\n{teacherAccessToken}");
         _userDatabase.AddToken(teacherAccessToken);
         _sender.SendBack(message.Chat.Id,
-            $"Токен учителя создан\\. Используйте /register \\[ваш токен\\], чтобы зарегистрироваться\\.\n`{teacherAccessToken}`",
+            $"{Program.Texts.GetMessageText("teachertokencreatedmarkdown")}`{teacherAccessToken}`",
             ParseMode.MarkdownV2);
     }
 
@@ -223,32 +223,32 @@ public class CommandHandler
         if (message.Chat.Type != ChatType.Group)
         {
             _sender.SendBack(message.Chat.Id,
-                "Ошибка: подписать чат можно только в том случае, если он является групповым.");
+                Program.Texts.GetMessageText("subscribeprivatechat"));
             return;
         }
 
         string[] args = message.Text.Split(' ');
         if (args.Length != 2)
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: укажите номер класса.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("gradesnotspecified"));
             return;
         }
 
         byte grade;
         if (!byte.TryParse(args[1], out grade))
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: неправильно указан класс.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("gradenumbernotcorrect"));
             return;
         }
 
         if (grade < 1 || grade > 11)
         {
-            _sender.SendBack(message.Chat.Id, "Ошибка: неправильно указан класс.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("gradenumbernotcorrect"));
             return;
         }
 
         _chatDatabase.AddChat(message.Chat.Id, grade);
-        _sender.SendBack(message.Chat.Id, "Чат успешно подписан!");
+        _sender.SendBack(message.Chat.Id, Program.Texts.GetMessageText("subscribesuccess"));
         // TODO: сделать проверку на наличие чата.
     }
 
@@ -257,7 +257,7 @@ public class CommandHandler
         Message? repliedMessage = message.ReplyToMessage;
         if (repliedMessage == null)
         {
-            _sender.SendBack(message.Chat.Id, "Пожалуйста, перешлите сообщение, которое будет отправлено.");
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("messagenotreplied"));
             return;
         }
 
