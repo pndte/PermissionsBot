@@ -223,7 +223,7 @@ public class CommandHandler
         if (message.Chat.Type != ChatType.Group)
         {
             _sender.SendBack(message.Chat.Id,
-                Program.Texts.GetMessageText("subscribeprivatechat"));
+                Program.Texts.GetErrorText("subscribeprivatechat"));
             return;
         }
 

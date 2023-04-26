@@ -5,8 +5,8 @@ using System.Text;
 
 public static class TokenManager
 {
-    private static Lazy<Random> _random = new Lazy<Random>();
-    private static SHA256 _sha256 = SHA256.Create();
+    private static readonly Lazy<Random> _random = new Lazy<Random>();
+    private static readonly SHA256 _sha256 = SHA256.Create();
 
     public static string CreateTeacherAccessToken()
     {

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq.Expressions;
+using System.Text;
 using PermissionsBot;
 using PermissionsBot.Bouncer;
 using PermissionsBot.Handlers.Commands;
@@ -7,6 +8,7 @@ using PermissionsBot.Logger;
 using PermissionsBot.Sender;
 using PermissionsBot.Tokens;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -23,7 +25,6 @@ class Program
     private static PlannedActionsDatabase _plannedActionsDatabase;
 
     public static Texts Texts = new Texts("texts.xml");
-
     public static async Task Main(string[] args)
     {
         string? token;
@@ -65,6 +66,7 @@ class Program
             new BotCommand() { Command = "/showalltokens", Description = Texts.GetCommandDescriptionText("showalltokens") },
         };
         await _botClient.SetMyCommandsAsync(commands);
+        
         _botClient.StartReceiving(updateHandler: UpdateHandler, pollingErrorHandler: PollingErrorHandler);
 
         _logger = new Logger();
@@ -77,7 +79,8 @@ class Program
         Console.ReadLine();
     }
 
-    private static async Task UpdateHandler(ITelegramBotClient bot, Update update, CancellationToken cancellationToken)
+    private static async Task UpdateHandler(ITelegramBotClient bot, Update update, 
+        CancellationToken cancellationToken)
     {
         if (update.CallbackQuery != null)
         {
@@ -376,7 +379,14 @@ class Program
     private static Task PollingErrorHandler(ITelegramBotClient bot, Exception exception,
         CancellationToken cancellationToken)
     {
-        Console.WriteLine(exception.ToString());
+        var ErrorMessage = exception switch
+        {
+            ApiRequestException apiRequestException
+                => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+            _ => exception.ToString()
+        };
+
+        Console.WriteLine(ErrorMessage);
         return Task.CompletedTask;
     }
 }
