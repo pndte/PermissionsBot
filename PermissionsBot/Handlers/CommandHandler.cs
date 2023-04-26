@@ -227,6 +227,12 @@ public class CommandHandler
             return;
         }
 
+        if (_chatDatabase.ContainChat(message.Chat.Id))
+        {
+            _sender.SendBack(message.Chat.Id, Program.Texts.GetErrorText("chatalreadysubscribed"));
+            return;
+        }
+
         string[] args = message.Text.Split(' ');
         if (args.Length != 2)
         {

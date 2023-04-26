@@ -18,6 +18,7 @@
             <unidentifiedcommand>Ошибка: неопознанная команда.</unidentifiedcommand>
             <subscribeprivatechat>Ошибка: подписка и отписка работает только в групповых чатах.</subscribeprivatechat>
             <chatnotsubscribed>Ошибка: чат не подписан.</chatnotsubscribed>
+            <chatalreadysubscribed>Ошибка: чат уже подписан.</chatalreadysubscribed>
             <messagenotreplied>Ошибка: перешлите сообщение, которое будет отправлено.</messagenotreplied>
             <gradesnotspecified>Ошибка: укажите номера получающих сообщения классов.</gradesnotspecified>
             <gradenumbernotcorrect>Ошибка: неверно введён номер класса.</gradenumbernotcorrect>

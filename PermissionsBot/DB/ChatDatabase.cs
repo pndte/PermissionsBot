@@ -16,7 +16,7 @@ public class ChatDatabase : AbstractDatabase
             var command = connection.CreateCommand();
             command.CommandText =
                 $@"SELECT chatid FROM {TableName} WHERE chatid = '{chatId}'";
-            long? id = (long)command.ExecuteScalar();
+            var id = command.ExecuteScalar();
             if (id != null)
             {
                 result = true;
